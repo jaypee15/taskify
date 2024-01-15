@@ -1,27 +1,28 @@
-const tasksDOM = document.querySelector('.tasks')
-const loadingDOM = document.querySelector('.loading-text')
-const formDOM = document.querySelector('.task-form')
-const taskInputDOM = document.querySelector('.task-input')
-const formAlertDOM = document.querySelector('.form-alert')
+const tasksDOM = document.querySelector(".tasks");
+const loadingDOM = document.querySelector(".loading-text");
+const formDOM = document.querySelector(".task-form");
+const taskInputDOM = document.querySelector(".task-input");
+const formAlertDOM = document.querySelector(".form-alert");
 // Load tasks from /api/tasks
 const showTasks = async () => {
-  loadingDOM.style.visibility = 'visible'
+  loadingDOM.style.visibility = "visible";
   try {
     const {
       data: { tasks },
-    } = await axios.get('/api/v1/tasks')
+    } = await axios.get("/api/v1/tasks");
     if (tasks.length < 1) {
-      tasksDOM.innerHTML = '<h5 class="empty-list">No tasks in your list</h5>'
-      loadingDOM.style.visibility = 'hidden'
-      return
+      tasksDOM.innerHTML = '<h5 class="empty-list">No tasks in your list</h5>';
+      loadingDOM.style.visibility = "hidden";
+      return;
     }
     const allTasks = tasks
       .map((task) => {
-        const { completed, _id: taskID, name } = task
-        return `<div class="single-task ${completed && 'task-completed'}">
+        const { completed, _id: taskID, name } = task;
+        return `<div class="single-task ${completed && "task-completed"}"><span><i class="fas fa-clock"></i></span>
 <h5><span><i class="far fa-check-circle"></i></span>${name}</h5>
 <div class="task-links">
 
+       
 
 
 <!-- edit link -->
@@ -33,55 +34,113 @@ const showTasks = async () => {
 <i class="fas fa-trash"></i>
 </button>
 </div>
-</div>`
+</div>`;
       })
-      .join('')
-    tasksDOM.innerHTML = allTasks
+      .join("");
+    tasksDOM.innerHTML = allTasks;
   } catch (error) {
     tasksDOM.innerHTML =
-      '<h5 class="empty-list">There was an error, please try later....</h5>'
+      '<h5 class="empty-list">There was an error, please try later....</h5>';
   }
-  loadingDOM.style.visibility = 'hidden'
-}
+  loadingDOM.style.visibility = "hidden";
+};
 
-showTasks()
+showTasks();
 
 // delete task /api/tasks/:id
 
-tasksDOM.addEventListener('click', async (e) => {
-  const el = e.target
-  if (el.parentElement.classList.contains('delete-btn')) {
-    loadingDOM.style.visibility = 'visible'
-    const id = el.parentElement.dataset.id
+tasksDOM.addEventListener("click", async (e) => {
+  const el = e.target;
+  if (el.parentElement.classList.contains("delete-btn")) {
+    loadingDOM.style.visibility = "visible";
+    const id = el.parentElement.dataset.id;
     try {
-      await axios.delete(`/api/v1/tasks/${id}`)
-      showTasks()
+      await axios.delete(`/api/v1/tasks/${id}`);
+      showTasks();
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
-  loadingDOM.style.visibility = 'hidden'
-})
+  loadingDOM.style.visibility = "hidden";
+});
 
 // form
 
-formDOM.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  const name = taskInputDOM.value
+formDOM.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = taskInputDOM.value;
 
   try {
-    await axios.post('/api/v1/tasks', { name })
-    showTasks()
-    taskInputDOM.value = ''
-    formAlertDOM.style.display = 'block'
-    formAlertDOM.textContent = `success, task added`
-    formAlertDOM.classList.add('text-success')
+    await axios.post("/api/v1/tasks", { name });
+    showTasks();
+    taskInputDOM.value = "";
+    formAlertDOM.style.display = "block";
+    formAlertDOM.textContent = `success, task added`;
+    formAlertDOM.classList.add("text-success");
   } catch (error) {
-    formAlertDOM.style.display = 'block'
-    formAlertDOM.innerHTML = `error, please try again`
+    formAlertDOM.style.display = "block";
+    formAlertDOM.innerHTML = `error, please try again`;
   }
   setTimeout(() => {
-    formAlertDOM.style.display = 'none'
-    formAlertDOM.classList.remove('text-success')
-  }, 3000)
-})
+    formAlertDOM.style.display = "none";
+    formAlertDOM.classList.remove("text-success");
+  }, 3000);
+});
+
+// Timer code
+
+tasksDOM.addEventListener("click", async (e) => {
+  const el = e.target;
+
+  if (el.classList.contains("fas") && el.classList.contains("fa-clock")) {
+
+
+    const timerElement = document.createElement("span"); // Create a new element for the timer
+    timerElement.classList.add("timer-display");
+    
+    const iconElement = document.createElement("i");
+    iconElement.classList.add("fa", "fa-stop"); // Initial state is 'fa-stop'
+    
+    const container = document.createElement("div");
+    container.classList.add("timer-container");
+    container.appendChild(iconElement);
+    container.appendChild(timerElement);
+
+    
+    
+    el.parentElement.appendChild(container);
+
+    el.parentElement.removeChild(el);
+
+    const startTime = Date.now();
+
+   
+
+    const updateTimer = () => {
+      const elapsedTime = Date.now() - startTime;
+      const formattedTime = formatTime(elapsedTime);
+      timerElement.textContent = formattedTime;
+      requestAnimationFrame(updateTimer);
+    };
+
+    updateTimer();
+  }
+});
+
+// Helper function to format time
+function formatTime(timeInMilliseconds) {
+  let seconds = Math.floor(timeInMilliseconds / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+
+  seconds %= 60;
+  minutes %= 60;
+
+  return (
+    hours.toString().padStart(2, "0") +
+    ":" +
+    minutes.toString().padStart(2, "0") +
+    ":" +
+    seconds.toString().padStart(2, "0")
+  );
+}
